@@ -2,6 +2,7 @@ var PORT = 1900;
 var MULTICAST_ADDR = '239.255.255.250';
 var dgram = require('dgram');
 var client = dgram.createSocket('udp4');
+var servers = [];
 
 client.on('listening', function() {
     client.setBroadcast(true);
@@ -10,7 +11,12 @@ client.on('listening', function() {
 });
 
 client.on('message', function(message, rinfo) {
-    console.log('Message from: ' + rinfo.address + ':' + rinfo.port + ' - ' + message);
+
+    if (message.includes('SERVER')) {
+        servers.push(rinfo.address);
+    }
+    // console.log('Message from: ' + rinfo.address + ':' + rinfo.port + ' - ' + message);
+    console.log(servers)
 });
 
 client.bind(PORT, function() {

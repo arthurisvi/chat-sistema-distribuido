@@ -9,8 +9,9 @@ server.bind(SRC_PORT, function() {
 });
 
 function multicastNew() {
-    var message = new Buffer("Teste multicast!");
-    server.send(message, 0, message.length, PORT, MULTICAST_ADDR, function() {
-        console.log("Teste mensagem '" + message + "'");
+
+    var object = Buffer.from('SERVER - teste')
+    server.send(object, 0, object.length, PORT, MULTICAST_ADDR, function() {
+        console.log("Teste mensagem '" + object + "'");
     });
 }
