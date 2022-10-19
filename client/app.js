@@ -1,24 +1,14 @@
-var PORT = 1900;
-var MULTICAST_ADDR = '239.255.255.250';
-var dgram = require('dgram');
-var client = dgram.createSocket('udp4');
-var servers = [];
+const middleware = require('./middleware')
 
-client.on('listening', function() {
-    client.setBroadcast(true);
-    var address = client.address();
-    console.log('UDP Client listening on ' + address.address + ":" + address.port);
-});
+middleware.listening();
 
-client.on('message', function(message, rinfo) {
+middleware.serviceDiscovery();
 
-    if (message.includes('SERVER')) {
-        servers.push(rinfo.address);
+middleware.bind();
+
+process.openStdin().addListener("data", (msg) => {
+    if (msg.toString().trim() == "exit") {
+        return process.exit();
     }
-    // console.log('Message from: ' + rinfo.address + ':' + rinfo.port + ' - ' + message);
-    console.log(servers)
-});
-
-client.bind(PORT, function() {
-    client.addMembership(MULTICAST_ADDR);
+    middleware.sendMessage(msg.toString().trim());
 });
