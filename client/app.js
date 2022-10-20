@@ -1,10 +1,6 @@
-const middleware = require('./middleware')
+const middleware = require('../middleware/index')
 
-middleware.listening();
-
-middleware.serviceDiscovery();
-
-middleware.bind();
+middleware.start('client');
 
 process.openStdin().addListener("data", (msg) => {
     if (msg.toString().trim() == "exit") {
