@@ -1,4 +1,4 @@
-const middleware = require("../middleware/index");
+const middleware = require("../middleware/main");
 
 middleware.start("server");
 
