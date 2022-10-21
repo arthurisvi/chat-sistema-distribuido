@@ -9,7 +9,7 @@ function run(multicastAddress, port) {
         client.setBroadcast(true);
         var address = client.address();
         console.log(
-            "UDP Client listening on " + address.address + ":" + address.port
+            "UDP Client listening on " + ip.address() + ":" + address.port
         );
     });
 
@@ -18,6 +18,11 @@ function run(multicastAddress, port) {
     });
 
     client.on("message", (message, rinfo) => {
+        if (ip.address() !== rinfo.address) {
+            console.log(
+                "Message from: " + rinfo.address + ":" + rinfo.port + " - " + message
+            );
+        }
         if (message.includes("{")) {
             let convertMessage = JSON.parse(message)
             let ipMessage = convertMessage.ip
