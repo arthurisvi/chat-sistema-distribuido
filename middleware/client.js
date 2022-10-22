@@ -4,6 +4,7 @@ const ip = require("ip");
 
 let servers = [];
 let logs = [];
+let pendingMessages = []
 
 function run(multicastAddress, port) {
     client.on("listening", () => {
@@ -22,6 +23,14 @@ function run(multicastAddress, port) {
         //         "Message from: " + rinfo.address + ":" + rinfo.port + " - " + message
         //     );
         // }
+        if (pendingMessages.length > 0 && servers.length > 0) {
+            for (message in pendingMessages) {
+                client.send(Buffer.from(pendingMessages[message]), servers[0].port, servers[0].ip);
+                console.log(`Sua mensagem "${pendingMessages[message]}" foi reenviada com sucesso!`)
+            }
+            pendingMessages = []
+        }
+
         if (message.includes("{")) {
             let convertMessage = JSON.parse(message);
             let ipMessage = convertMessage.ip;
@@ -64,8 +73,9 @@ const sendMessage = (message) => {
         client.send(Buffer.from(message), servers[0].port, servers[0].ip);
     } else {
         console.log(
-            "Conexão instável, não foi possível enviar sua mensagem. Tente novamente em alguns segundos."
+            "Conexão instável, não foi possível enviar sua mensagem. Ela será reenviada novamente em alguns segundos."
         );
+        if (!pendingMessages.includes(message)) pendingMessages.push(message)
     }
 };
 
