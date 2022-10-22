@@ -1,10 +1,10 @@
 const SRC_PORT = 6025;
-var dgram = require("dgram");
-var server = dgram.createSocket("udp4");
+const dgram = require("dgram");
+const server = dgram.createSocket("udp4");
 
 function run(multicastAddress, port) {
     server.bind(SRC_PORT, () => {
-        setInterval(multicastNew, 7000);
+        setInterval(multicastNew, 2000);
     });
 
     const multicastNew = () => {
