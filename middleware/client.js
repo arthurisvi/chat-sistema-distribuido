@@ -64,12 +64,13 @@ function run(multicastAddress, port) {
                 time: new Date(),
             });
         }
-        if (servers.length > 0) verifyServerOn(servers, logs);
     });
 }
 
 const sendMessage = (message) => {
-    if (servers.length > 0) {
+    let serversOn = verifyServerOn(servers, logs);
+
+    if (serversOn.length > 0) {
         client.send(Buffer.from(message), servers[0].port, servers[0].ip);
     } else {
         console.log(
@@ -83,12 +84,14 @@ const verifyServerOn = (servers, serversLog) => {
     let count = 0;
     let serversLogLast = [];
 
-    serversLog.map((log, i) => {
-        if (log.ip === servers[0].ip) {
-            serversLogLast.push(log);
-            count++;
-        }
-    });
+    if (serversLog.length > 0 && servers.length > 0) {
+        serversLog.map((log, i) => {
+            if (log.ip === servers[0].ip) {
+                serversLogLast.push(log);
+                count++;
+            }
+        });
+    }
 
     if (count >= 3) {
         let last = serversLogLast[count - 1].time;
@@ -97,6 +100,8 @@ const verifyServerOn = (servers, serversLog) => {
 
         if (diff > 5000) servers.shift();
     }
+
+    return servers;
 };
 
 module.exports = {
