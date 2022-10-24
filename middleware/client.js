@@ -98,7 +98,7 @@ const verifyServerOn = (servers, serversLog) => {
         let time = new Date();
         let diff = time - last;
 
-        if (diff > 5000) servers.shift();
+        if (diff > 6100) servers.shift();
     }
 
     return servers;
