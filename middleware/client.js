@@ -4,7 +4,7 @@ const ip = require("ip");
 
 let servers = [];
 let logs = [];
-let pendingMessages = []
+let pendingMessages = [];
 
 function run(multicastAddress, port) {
     client.on("listening", () => {
@@ -17,32 +17,14 @@ function run(multicastAddress, port) {
     });
 
     client.on("message", (message, rinfo) => {
-        if (pendingMessages.length > 0 && servers.length > 0) {
-            for (message in pendingMessages) {
-                client.send(Buffer.from(pendingMessages[message]), servers[0].port, servers[0].ip);
-                console.log(`Sua mensagem "${pendingMessages[message]}" foi reenviada com sucesso!`)
-            }
-            pendingMessages = []
-        }
 
-        if (message.includes("{") && message.includes("}")) {
-            let convertMessage = JSON.parse(message);
-            let ipMessage = convertMessage.ip;
-            let portMessage = convertMessage.port;
-            message = convertMessage.message;
+        verifyPendingMessages();
 
-            if (ipMessage !== ip.address()) {
-                console.log(`[${ipMessage}:${portMessage}] - ${message}`);
-            }
-        }
+        if (message.includes("{") && message.includes("}"))
+            verifyMessageObject(message);
 
-        if (message.includes("ssdp:server")) {
-            logs.push({
-                ip: rinfo.address,
-                port: rinfo.port,
-                time: new Date(),
-            });
-        }
+        if (message.includes("ssdp:server"))
+            logs.push({ ip: rinfo.address, port: rinfo.port, time: new Date() });
 
         servers = [...new Set(logs.map((obj) => obj.ip))].map((ip) =>
             logs.find((obj) => obj.ip === ip)
@@ -59,7 +41,7 @@ const sendMessage = (message) => {
         console.log(
             "Conexão instável, não foi possível enviar sua mensagem. Ela será reenviada novamente em alguns segundos."
         );
-        if (!pendingMessages.includes(message)) pendingMessages.push(message)
+        if (!pendingMessages.includes(message)) pendingMessages.push(message);
     }
 };
 
@@ -85,6 +67,34 @@ const verifyServerOn = (servers, serversLog) => {
     }
 
     return servers;
+};
+
+const verifyPendingMessages = () => {
+    if (pendingMessages.length > 0 && servers.length > 0) {
+        for (message in pendingMessages) {
+            client.send(
+                Buffer.from(pendingMessages[message]),
+                servers[0].port,
+                servers[0].ip
+            );
+            console.log(
+                `Sua mensagem "${pendingMessages[message]}" foi reenviada com sucesso!`
+            );
+        }
+        pendingMessages = [];
+    }
+}
+
+const verifyMessageObject = (obj) => {
+    let decodeObject = JSON.parse(obj);
+    let ipMessage = decodeObject.ip;
+    let portMessage = decodeObject.port;
+    let protocol = decodeObject.protocol;
+    let message = decodeObject.message;
+
+    if (ipMessage !== ip.address() && protocol === "ssdp:chat") {
+        console.log(`[${ipMessage}:${portMessage}] - ${message}`);
+    }
 };
 
 module.exports = {

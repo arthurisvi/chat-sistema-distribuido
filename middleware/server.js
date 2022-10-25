@@ -16,7 +16,7 @@ function run(multicastAddress, port) {
 
     server.on("message", (message, rinfo) => {
         console.log(`${rinfo.address}:${rinfo.port} - ${message}`);
-        message = `{"ip":"${rinfo.address}", "port":"${rinfo.port}", "message":"${message}"}`;
+        message = `{"ip":"${rinfo.address}", "port":"${rinfo.port}", "message":"${message}", "protocol":"ssdp:chat"}`;
         server.send(message, 0, message.length, port, multicastAddress, () => {});
     });
 }
