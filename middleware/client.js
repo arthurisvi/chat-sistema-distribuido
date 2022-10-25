@@ -8,7 +8,6 @@ let pendingMessages = []
 
 function run(multicastAddress, port) {
     client.on("listening", () => {
-        client.setBroadcast(true);
         let address = client.address();
         console.log("UDP Client listening on " + ip.address() + ":" + address.port);
     });
@@ -18,11 +17,6 @@ function run(multicastAddress, port) {
     });
 
     client.on("message", (message, rinfo) => {
-        // if (ip.address() !== rinfo.address) {
-        //     console.log(
-        //         "Message from: " + rinfo.address + ":" + rinfo.port + " - " + message
-        //     );
-        // }
         if (pendingMessages.length > 0 && servers.length > 0) {
             for (message in pendingMessages) {
                 client.send(Buffer.from(pendingMessages[message]), servers[0].port, servers[0].ip);
@@ -31,7 +25,7 @@ function run(multicastAddress, port) {
             pendingMessages = []
         }
 
-        if (message.includes("{")) {
+        if (message.includes("{") && message.includes("}")) {
             let convertMessage = JSON.parse(message);
             let ipMessage = convertMessage.ip;
             let portMessage = convertMessage.port;
@@ -43,27 +37,16 @@ function run(multicastAddress, port) {
         }
 
         if (message.includes("ssdp:server")) {
-            // console.log(
-            //     "Keep-alive from: " + rinfo.address + ":" + rinfo.port + " - " + message
-            // );
-
-            let ips = servers.map((server) => server.ip);
-
-            if (!ips.includes(rinfo.address)) {
-                servers.push({
-                    serverOn: true,
-                    ip: rinfo.address,
-                    port: rinfo.port,
-                    time: new Date(),
-                });
-            }
-
             logs.push({
                 ip: rinfo.address,
                 port: rinfo.port,
                 time: new Date(),
             });
         }
+
+        servers = [...new Set(logs.map((obj) => obj.ip))].map((ip) =>
+            logs.find((obj) => obj.ip === ip)
+        );
     });
 }
 
@@ -85,7 +68,7 @@ const verifyServerOn = (servers, serversLog) => {
     let serversLogLast = [];
 
     if (serversLog.length > 0 && servers.length > 0) {
-        serversLog.map((log, i) => {
+        serversLog.map((log) => {
             if (log.ip === servers[0].ip) {
                 serversLogLast.push(log);
                 count++;
